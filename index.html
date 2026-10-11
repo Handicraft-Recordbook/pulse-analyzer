@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Pulse Analyzer Pro</title>
+  <title>Pulse Wave Analyzer</title>
   <style>
     :root {
       --bg: #0d0f12;
@@ -28,12 +28,12 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
-      height: 100dvh; /* iOS Safariのアドレスバー考慮 */
+      height: 100dvh;
       padding: 8px 10px;
-      overflow: hidden; /* スクロール完全防止 */
+      overflow: hidden;
     }
 
-    /* ヘッダーエリア */
+    /* Header */
     header {
       display: flex;
       justify-content: space-between;
@@ -47,13 +47,13 @@
       letter-spacing: 0.3px;
       color: #fff;
     }
-    .header-date {
-      font-size: 10px; /* タイトルの約2/3サイズ */
+    .header-date-container {
+      font-size: 10px;
       color: var(--text-muted);
       font-family: "SF Mono", Menlo, Consolas, monospace;
     }
 
-    /* マイク制御 & デバイス選択 */
+    /* Top Controls */
     .top-controls {
       display: flex;
       flex-direction: column;
@@ -85,8 +85,21 @@
       background: linear-gradient(135deg, #d90429, #ff3366);
       color: #fff;
     }
+
+    /* Device Selector Row */
+    .mic-select-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mic-select-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
     .mic-select {
-      width: 100%;
+      flex: 1;
       height: 26px;
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -97,7 +110,7 @@
       outline: none;
     }
 
-    /* パラメーターコントロール（1行横並び配置） */
+    /* Sliders */
     .params-container {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -116,7 +129,7 @@
       gap: 8px;
     }
     .param-label {
-      width: 82px;
+      width: 95px;
       font-size: 11px;
       color: var(--text);
       flex-shrink: 0;
@@ -137,7 +150,7 @@
       flex-shrink: 0;
     }
 
-    /* グラフセクション（高さを低く抑えて1画面に収める） */
+    /* Chart Cards */
     .chart-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -171,8 +184,17 @@
       color: #34d399;
     }
 
-    /* グラフCanvas（アスペクト比 5:2 で低背化） */
-    canvas {
+    /* Pulse Canvas: 1.5x taller (5:3 aspect-ratio) */
+    #timeCanvas {
+      display: block;
+      width: 100%;
+      aspect-ratio: 5 / 3;
+      background: #090b0e;
+      border-radius: 4px;
+    }
+
+    /* FFT Canvas: standard height (5:2 aspect-ratio) */
+    #freqCanvas {
       display: block;
       width: 100%;
       aspect-ratio: 5 / 2;
@@ -183,64 +205,69 @@
 </head>
 <body>
 
-  <!-- ヘッダー -->
+  <!-- Header -->
   <header>
-    <h1>パルス波形アナライザー</h1>
-    <div id="currentDate" class="header-date">----/--/--</div>
+    <h1>Pulse Wave Analyzer</h1>
+    <div class="header-date-container">
+      Recording day: <span id="currentDate">----/--/--</span>
+    </div>
   </header>
 
-  <!-- 上部操作（トグルボタン & マイク選択） -->
+  <!-- Microphone & Controls -->
   <div class="top-controls">
-    <button id="toggleBtn" class="action-btn btn-start">マイク入力開始</button>
-    <select id="micSelect" class="mic-select">
-      <option value="">デフォルトマイク (内蔵)</option>
-    </select>
+    <button id="toggleBtn" class="action-btn btn-start">Start Microphone</button>
+    <div class="mic-select-row">
+      <span class="mic-select-label">Mic Selection:</span>
+      <select id="micSelect" class="mic-select">
+        <option value="">Default (Built-in)</option>
+      </select>
+    </div>
   </div>
 
-  <!-- パラメーターコントロール（横並びレイアウト） -->
+  <!-- Parameters (Sliders) -->
   <div class="params-container">
     <div class="param-row">
-      <span class="param-label">トリガー閾値</span>
+      <span class="param-label">Trigger Threshold</span>
       <input type="range" id="threshold" class="param-slider" min="0.01" max="0.5" step="0.01" value="0.10">
       <span id="thVal" class="param-val">0.10</span>
     </div>
     <div class="param-row">
-      <span class="param-label">波形 表示時間</span>
+      <span class="param-label">Time Span</span>
       <input type="range" id="timeSpan" class="param-slider" min="50" max="600" step="10" value="300">
       <span id="tsVal" class="param-val">300ms</span>
     </div>
     <div class="param-row">
-      <span class="param-label">波形 スケール</span>
+      <span class="param-label">Vertical Scale</span>
       <input type="range" id="vScale" class="param-slider" min="0.5" max="10.0" step="0.5" value="1.0">
       <span id="vsVal" class="param-val">1.0x</span>
     </div>
   </div>
 
-  <!-- パルス波形グラフ -->
+  <!-- Pulse Waveform Card (1.5x Height) -->
   <div class="chart-card">
     <div class="chart-header">
-      <span class="chart-title">パルス波形 (Time Domain)</span>
+      <span class="chart-title">Pulse Waveform (Time Domain)</span>
       <span id="statusBadge" class="status-badge">STANDBY</span>
     </div>
     <canvas id="timeCanvas"></canvas>
   </div>
 
-  <!-- 周波数スペクトルグラフ -->
+  <!-- Frequency Spectrum Card -->
   <div class="chart-card">
     <div class="chart-header">
-      <span class="chart-title">周波数スペクトル (FFT)</span>
+      <span class="chart-title">Frequency Spectrum (FFT)</span>
       <span>0Hz - 8kHz</span>
     </div>
     <canvas id="freqCanvas"></canvas>
   </div>
 
   <script>
-    // 1. 日付表示の設定
+    // 1. Date Display
     const d = new Date();
     const dateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
     document.getElementById('currentDate').textContent = dateStr;
 
-    // UI要素の参照
+    // UI References
     const toggleBtn = document.getElementById('toggleBtn');
     const micSelect = document.getElementById('micSelect');
     const thresholdInput = document.getElementById('threshold');
@@ -255,7 +282,7 @@
     const tCtx = timeCanvas.getContext('2d');
     const fCtx = freqCanvas.getContext('2d');
 
-    // スライダー連動
+    // Slider Event Handlers
     thresholdInput.oninput = () => thVal.textContent = parseFloat(thresholdInput.value).toFixed(2);
     timeSpanInput.oninput = () => {
       tsVal.textContent = timeSpanInput.value + 'ms';
@@ -266,7 +293,7 @@
       if (lastCapturedWave) renderTimeDomain(lastCapturedWave);
     };
 
-    // オーディオ・システム変数
+    // Audio Engine Variables
     let audioCtx = null;
     let analyser = null;
     let sourceNode = null;
@@ -274,7 +301,7 @@
     let isRunning = false;
     let animFrameId = null;
 
-    // バッファ管理
+    // Buffer Management
     const BUFFER_SIZE = 16384;
     const ringBuffer = new Float32Array(BUFFER_SIZE);
     let ringHead = 0;
@@ -283,7 +310,7 @@
     let lastCapturedWave = null;
     let lastCapturedFreq = null;
 
-    // Retina解像度対応
+    // Canvas Sizing
     function resizeCanvas(canvas, ctx) {
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
@@ -302,7 +329,7 @@
     window.addEventListener('resize', initCanvases);
     setTimeout(initCanvases, 100);
 
-    // デバイス一覧取得
+    // List Microphones
     async function populateMics() {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
@@ -313,7 +340,7 @@
         audioInputs.forEach((device, index) => {
           const opt = document.createElement('option');
           opt.value = device.deviceId;
-          opt.textContent = device.label || `マイク ${index + 1} (${device.deviceId.slice(0, 5)}...)`;
+          opt.textContent = device.label || `Microphone ${index + 1} (${device.deviceId.slice(0, 5)}...)`;
           micSelect.appendChild(opt);
         });
 
@@ -321,7 +348,7 @@
           micSelect.value = currentVal;
         }
       } catch (err) {
-        console.warn('マイク一覧取得エラー:', err);
+        console.warn('Failed to enumerate devices:', err);
       }
     }
 
@@ -329,7 +356,7 @@
       populateMics();
     };
 
-    // トグルボタン処理（開始 ⇔ 停止）
+    // Toggle Button
     toggleBtn.addEventListener('click', async () => {
       if (isRunning) {
         stopAudio();
@@ -338,7 +365,7 @@
       }
     });
 
-    // マイク選択変更時のシームレス再起動
+    // Handle Mic Device Switch
     micSelect.addEventListener('change', async () => {
       if (isRunning) {
         stopAudio(false);
@@ -363,7 +390,6 @@
           }
         });
 
-        // 権限取得後にマイク名が取得できるため一覧を再更新
         await populateMics();
 
         sourceNode = audioCtx.createMediaStreamSource(currentStream);
@@ -373,12 +399,12 @@
         sourceNode.connect(analyser);
 
         isRunning = true;
-        toggleBtn.textContent = '録音停止';
+        toggleBtn.textContent = 'Stop Recording';
         toggleBtn.className = 'action-btn btn-stop';
 
         processLoop();
       } catch (err) {
-        alert('マイク起動に失敗しました: ' + err.message);
+        alert('Microphone initialization failed: ' + err.message);
       }
     }
 
@@ -395,14 +421,14 @@
       }
 
       if (fullReset) {
-        toggleBtn.textContent = 'マイク入力開始';
+        toggleBtn.textContent = 'Start Microphone';
         toggleBtn.className = 'action-btn btn-start';
         statusBadge.textContent = 'STANDBY';
         statusBadge.className = 'status-badge';
       }
     }
 
-    // 監視・キャプチャループ
+    // Monitoring & Capture Loop
     const pcmChunk = new Float32Array(1024);
     function processLoop() {
       if (!isRunning) return;
@@ -410,7 +436,6 @@
 
       analyser.getFloatTimeDomainData(pcmChunk);
 
-      // リングバッファへ追加
       for (let i = 0; i < pcmChunk.length; i++) {
         ringBuffer[ringHead] = pcmChunk[i];
         ringHead = (ringHead + 1) % BUFFER_SIZE;
@@ -418,23 +443,20 @@
 
       const threshold = parseFloat(thresholdInput.value);
 
-      // ピーク検出
       let maxVal = 0;
       for (let i = 0; i < pcmChunk.length; i++) {
         const val = Math.abs(pcmChunk[i]);
         if (val > maxVal) maxVal = val;
       }
 
-      // トリガー判定
       if (maxVal > threshold && !isTriggerLocked) {
         isTriggerLocked = true;
         statusBadge.textContent = 'CAPTURED';
         statusBadge.className = 'status-badge captured';
 
-        // 過去データを巻き戻してパルス波形を切り出し
-        const captureSamples = Math.floor(sampleRate * 0.7); // 最大700ms蓄積
+        const captureSamples = Math.floor(sampleRate * 0.7);
         const captured = new Float32Array(captureSamples);
-        const preSamples = Math.floor(sampleRate * 0.05); // 50msプリトリガー
+        const preSamples = Math.floor(sampleRate * 0.05);
         let startIdx = (ringHead - pcmChunk.length - preSamples + BUFFER_SIZE) % BUFFER_SIZE;
 
         for (let i = 0; i < captureSamples; i++) {
@@ -443,13 +465,11 @@
         lastCapturedWave = captured;
         renderTimeDomain(lastCapturedWave);
 
-        // 周波数スペクトル (FFT) 取得・描画
         const freqData = new Float32Array(analyser.frequencyBinCount);
         analyser.getFloatFrequencyData(freqData);
         lastCapturedFreq = freqData;
         renderFrequency(lastCapturedFreq);
 
-        // 再トリガー防止（1秒クールダウン）
         setTimeout(() => {
           isTriggerLocked = false;
           if (isRunning) {
@@ -460,7 +480,7 @@
       }
     }
 
-    // パルス波形 描画ロジック
+    // Time Domain Grid & Wave Rendering
     function drawTimeGrid(pL = 50, pB = 26, durationMs = 300, scale = 1.0) {
       const rect = timeCanvas.getBoundingClientRect();
       const W = rect.width, H = rect.height;
@@ -471,7 +491,6 @@
       tCtx.fillStyle = '#64748b';
       tCtx.font = '9px "SF Mono", monospace';
 
-      // 縦軸（振幅）
       const vLimit = 1.0 / scale;
       const vSteps = [
         { ratio: 0.0, label: `+${vLimit.toFixed(2)}` },
@@ -490,7 +509,6 @@
         tCtx.fillText(s.label, 4, y + 3);
       });
 
-      // 横軸（時間 ms）
       const hSteps = 5;
       for (let i = 0; i <= hSteps; i++) {
         const x = pL + (i / hSteps) * (W - pL - 6);
@@ -535,7 +553,7 @@
       tCtx.stroke();
     }
 
-    // 周波数スペクトル (FFT) 描画ロジック
+    // FFT Grid & Spectrum Rendering
     function drawFreqGrid(pL = 50, pB = 26) {
       const rect = freqCanvas.getBoundingClientRect();
       const W = rect.width, H = rect.height;
@@ -546,7 +564,6 @@
       fCtx.fillStyle = '#64748b';
       fCtx.font = '9px "SF Mono", monospace';
 
-      // 縦軸 (dB)
       const dBs = [0, -20, -40, -60, -80, -100];
       dBs.forEach((db, i) => {
         const y = (i / (dBs.length - 1)) * (H - pB);
@@ -557,7 +574,6 @@
         fCtx.fillText(`${db}dB`, 4, y + 3);
       });
 
-      // 横軸 (周波数 0 - 8kHz)
       const freqs = [
         { hz: 0, label: '0Hz' },
         { hz: 1000, label: '1k' },
@@ -585,7 +601,6 @@
       const plotW = W - pL - 6;
       const plotH = H - pB;
 
-      // 0Hz〜8000Hzに対応するビン数を算出
       const nyquist = sampleRate / 2;
       const maxBin = Math.floor((8000 / nyquist) * freqData.length);
       const barWidth = plotW / maxBin;
