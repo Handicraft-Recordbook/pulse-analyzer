@@ -2,114 +2,500 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Pulse Analyzer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Pulse Analyzer Pro</title>
   <style>
-    body { font-family: sans-serif; background: #111; color: #eee; padding: 20px; }
-    canvas { background: #222; margin-bottom: 10px; display: block; }
-    button { padding: 10px 20px; font-size: 16px; margin-bottom: 10px; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #121316;
+      color: #f1f3f5;
+      padding: 14px;
+      line-height: 1.4;
+    }
+    header {
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #00e5ff;
+    }
+    .btn-start {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #00c853, #009624);
+      color: white;
+      cursor: pointer;
+      margin: 8px 0 14px;
+      box-shadow: 0 4px 10px rgba(0, 200, 83, 0.3);
+      transition: opacity 0.2s;
+    }
+    .btn-start:active {
+      opacity: 0.8;
+    }
+    .btn-start.running {
+      background: linear-gradient(135deg, #37474f, #263238);
+      color: #90a4ae;
+      box-shadow: none;
+    }
+    
+    .panel {
+      background: #1c1e24;
+      border: 1px solid #2d3139;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+    .control-row:last-child {
+      margin-bottom: 0;
+    }
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #cfd8dc;
+    }
+    .control-header span.val {
+      font-family: monospace;
+      color: #00e5ff;
+      font-weight: bold;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: #00e5ff;
+      height: 24px;
+    }
+
+    .canvas-card {
+      background: #1c1e24;
+      border: 1px solid #2d3139;
+      border-radius: 8px;
+      padding: 8px;
+      margin-bottom: 14px;
+    }
+    .canvas-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #90a4ae;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .canvas-wrapper {
+      width: 100%;
+      aspect-ratio: 3 / 2;
+      position: relative;
+      background: #090a0f;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .status-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #263238;
+      color: #b0bec5;
+    }
+    .status-badge.active {
+      background: #d50000;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
-  <button id="startBtn">マイク開始 (iOSはタップ必須)</button>
-  <div>
-    <label>トリガー閾値 (0.01 - 1.0): 
-      <input type="range" id="threshold" min="0.01" max="0.5" step="0.01" value="0.1">
-      <span id="thVal">0.1</span>
-    </label>
+
+  <header>
+    <h1>パルス波形アナライザー</h1>
+  </header>
+
+  <button id="startBtn" class="btn-start">マイク入力開始</button>
+
+  <div class="panel">
+    <div class="control-row">
+      <div class="control-header">
+        <span>トリガー閾値</span>
+        <span id="thVal" class="val">0.10</span>
+      </div>
+      <input type="range" id="threshold" min="0.01" max="0.8" step="0.01" value="0.10">
+    </div>
+
+    <div class="control-row">
+      <div class="control-header">
+        <span>波形 表示時間（横軸）</span>
+        <span id="timeRangeVal" class="val">300 ms</span>
+      </div>
+      <input type="range" id="timeRange" min="50" max="600" step="10" value="300">
+    </div>
+
+    <div class="control-row">
+      <div class="control-header">
+        <span>波形 縦軸スケール（振幅倍率）</span>
+        <span id="volScaleVal" class="val">1.0x (±1.00)</span>
+      </div>
+      <input type="range" id="volScale" min="0.5" max="10.0" step="0.1" value="1.0">
+    </div>
   </div>
-  <h3>捕捉されたパルス波形 (Time Domain)</h3>
-  <canvas id="timeCanvas" width="600" height="200"></canvas>
-  <h3>周波数スペクトル (FFT)</h3>
-  <canvas id="freqCanvas" width="600" height="200"></canvas>
+
+  <div class="canvas-card">
+    <div class="canvas-title">
+      <span>パルス波形 (Time Domain)</span>
+      <span id="trigBadge" class="status-badge">STANDBY</span>
+    </div>
+    <div class="canvas-wrapper">
+      <canvas id="timeCanvas"></canvas>
+    </div>
+  </div>
+
+  <div class="canvas-card">
+    <div class="canvas-title">
+      <span>周波数スペクトル (FFT)</span>
+      <span style="font-size:0.75rem; color:#607d8b;">0Hz - 8kHz</span>
+    </div>
+    <div class="canvas-wrapper">
+      <canvas id="freqCanvas"></canvas>
+    </div>
+  </div>
 
   <script>
-    let audioCtx, analyser, source;
+    let audioCtx, analyser, source, scriptProcessor;
+    let sampleRate = 44100;
+
     const thresholdInput = document.getElementById('threshold');
+    const timeRangeInput = document.getElementById('timeRange');
+    const volScaleInput = document.getElementById('volScale');
     const thVal = document.getElementById('thVal');
-    thresholdInput.oninput = () => thVal.textContent = thresholdInput.value;
+    const timeRangeVal = document.getElementById('timeRangeVal');
+    const volScaleVal = document.getElementById('volScaleVal');
+    const trigBadge = document.getElementById('trigBadge');
+    const startBtn = document.getElementById('startBtn');
 
     const timeCanvas = document.getElementById('timeCanvas');
     const freqCanvas = document.getElementById('freqCanvas');
     const tCtx = timeCanvas.getContext('2d');
     const fCtx = freqCanvas.getContext('2d');
 
-    document.getElementById('startBtn').addEventListener('click', async () => {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          autoGainControl: false,
-          echoCancellation: false,
-          noiseSuppression: false
-        }
+    // UIイベントリスナー
+    thresholdInput.oninput = () => thVal.textContent = parseFloat(thresholdInput.value).toFixed(2);
+    timeRangeInput.oninput = () => {
+      timeRangeVal.textContent = `${timeRangeInput.value} ms`;
+      if (lastCapturedWave) drawTimeDomain(lastCapturedWave);
+    };
+    volScaleInput.oninput = () => {
+      const scale = parseFloat(volScaleInput.value);
+      const maxAmp = (1.0 / scale).toFixed(2);
+      volScaleVal.textContent = `${scale.toFixed(1)}x (±${maxAmp})`;
+      if (lastCapturedWave) drawTimeDomain(lastCapturedWave);
+    };
+
+    // Canvas解像度フィッティング
+    function resizeCanvases() {
+      const dpr = window.devicePixelRatio || 1;
+      [timeCanvas, freqCanvas].forEach(cnv => {
+        const rect = cnv.getBoundingClientRect();
+        cnv.width = Math.floor(rect.width * dpr);
+        cnv.height = Math.floor(rect.height * dpr);
       });
+      if (lastCapturedWave) drawTimeDomain(lastCapturedWave);
+      if (lastCapturedFreq) drawFrequency(lastCapturedFreq);
+      else drawInitialGrid();
+    }
+    window.addEventListener('resize', resizeCanvases);
 
-      source = audioCtx.createMediaStreamSource(stream);
-      analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 2048;
-      source.connect(analyser);
+    function drawInitialGrid() {
+      drawTimeDomain(new Float32Array(0));
+      drawFrequency(new Float32Array(0));
+    }
 
-      listenLoop();
+    // リングバッファ（過去1秒分を常時保持）
+    let ringBufferSize = 44100;
+    let ringBuffer = new Float32Array(ringBufferSize);
+    let ringIndex = 0;
+    let isCoolDown = false;
+    let lastCapturedWave = null;
+    let lastCapturedFreq = null;
+
+    startBtn.addEventListener('click', async () => {
+      if (audioCtx) return;
+
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        await audioCtx.resume();
+        sampleRate = audioCtx.sampleRate;
+        ringBufferSize = Math.floor(sampleRate * 1.5);
+        ringBuffer = new Float32Array(ringBufferSize);
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            autoGainControl: false,
+            echoCancellation: false,
+            noiseSuppression: false
+          }
+        });
+
+        source = audioCtx.createMediaStreamSource(stream);
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 2048;
+
+        // 音声サンプルのストリーミング記録用
+        scriptProcessor = audioCtx.createScriptProcessor(2048, 1, 1);
+        source.connect(analyser);
+        source.connect(scriptProcessor);
+        scriptProcessor.connect(audioCtx.destination); // Safariで処理を動かすため接続必須
+
+        scriptProcessor.onaudioprocess = (e) => {
+          const input = e.inputBuffer.getChannelData(0);
+          const threshold = parseFloat(thresholdInput.value);
+
+          let triggeredLocalIndex = -1;
+          for (let i = 0; i < input.length; i++) {
+            const val = input[i];
+            ringBuffer[ringIndex] = val;
+
+            if (!isCoolDown && Math.abs(val) >= threshold && triggeredLocalIndex === -1) {
+              triggeredLocalIndex = ringIndex;
+            }
+
+            ringIndex = (ringIndex + 1) % ringBufferSize;
+          }
+
+          if (triggeredLocalIndex !== -1 && !isCoolDown) {
+            triggerCapture(triggeredLocalIndex);
+          }
+        };
+
+        startBtn.textContent = "測定中（マイク稼働中）";
+        startBtn.classList.add('running');
+        resizeCanvases();
+      } catch (err) {
+        alert("マイクの初期化に失敗しました: " + err.message);
+      }
     });
 
-    let isTriggered = false;
-    let postTriggerCount = 0;
-    const timeData = new Float32Array(2048);
-    const freqData = new Float32Array(analyser ? analyser.frequencyBinCount : 1024);
+    function triggerCapture(triggerPos) {
+      isCoolDown = true;
+      trigBadge.textContent = "TRIGGERED";
+      trigBadge.classList.add('active');
 
-    function listenLoop() {
-      requestAnimationFrame(listenLoop);
-      if (!analyser) return;
+      // プリトリガー50ms前から切り出し（パルスの立ち上がり開始部分を逃さないため）
+      const preSamples = Math.floor(sampleRate * 0.05);
+      const totalSamples = Math.floor(sampleRate * 0.7); // 最大700ms分保持
+      const captured = new Float32Array(totalSamples);
 
-      analyser.getFloatTimeDomainData(timeData);
-      const threshold = parseFloat(thresholdInput.value);
-
-      // ピーク検出
-      let maxVal = 0;
-      for (let i = 0; i < timeData.length; i++) {
-        if (Math.abs(timeData[i]) > maxVal) maxVal = Math.abs(timeData[i]);
+      let readIdx = (triggerPos - preSamples + ringBufferSize) % ringBufferSize;
+      for (let i = 0; i < totalSamples; i++) {
+        captured[i] = ringBuffer[readIdx];
+        readIdx = (readIdx + 1) % ringBufferSize;
       }
 
-      // トリガー処理 (過度な連続更新を防ぐための簡易ロック)
-      if (maxVal > threshold && !isTriggered) {
-        isTriggered = true;
-        drawTimeDomain(timeData);
-        
-        analyser.getFloatFrequencyData(freqData);
-        drawFrequency(freqData);
+      lastCapturedWave = captured;
+      drawTimeDomain(lastCapturedWave);
 
-        // 2秒周期のため、1秒間は再トリガーを抑制
-        setTimeout(() => { isTriggered = false; }, 1000);
-      }
+      // FFTの取得
+      const freqData = new Float32Array(analyser.frequencyBinCount);
+      analyser.getFloatFrequencyData(freqData);
+      lastCapturedFreq = freqData;
+      drawFrequency(lastCapturedFreq);
+
+      // 2秒周期のため、1秒間は再トリガーを休止
+      setTimeout(() => {
+        isCoolDown = false;
+        trigBadge.textContent = "STANDBY";
+        trigBadge.classList.remove('active');
+      }, 1000);
     }
 
+    // --- 波形描画（目盛り・単位付き）---
     function drawTimeDomain(data) {
-      tCtx.clearRect(0, 0, timeCanvas.width, timeCanvas.height);
-      tCtx.strokeStyle = '#00ffcc';
-      tCtx.lineWidth = 1.5;
+      const w = timeCanvas.width;
+      const h = timeCanvas.height;
+      if (w === 0 || h === 0) return;
+
+      const scale = parseFloat(volScaleInput.value);
+      const displayMs = parseFloat(timeRangeInput.value);
+      const displaySamples = Math.floor((displayMs / 1000) * sampleRate);
+
+      const padL = 38;
+      const padR = 12;
+      const padT = 16;
+      const padB = 24;
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+      const midY = padT + plotH / 2;
+
+      tCtx.fillStyle = '#090a0f';
+      tCtx.fillRect(0, 0, w, h);
+
+      // グリッド線と縦軸ラベル (振幅)
+      tCtx.lineWidth = 1;
+      tCtx.strokeStyle = '#20242e';
+      tCtx.fillStyle = '#607d8b';
+      tCtx.font = `${Math.max(10, Math.floor(h * 0.038))}px monospace`;
+      tCtx.textAlign = 'right';
+      tCtx.textBaseline = 'middle';
+
+      const maxAmp = (1.0 / scale);
+      const yTicks = [
+        { amp: maxAmp, y: padT },
+        { amp: maxAmp / 2, y: padT + plotH * 0.25 },
+        { amp: 0, y: midY },
+        { amp: -maxAmp / 2, y: padT + plotH * 0.75 },
+        { amp: -maxAmp, y: padT + plotH }
+      ];
+
+      yTicks.forEach(t => {
+        tCtx.beginPath();
+        tCtx.moveTo(padL, t.y);
+        tCtx.lineTo(padL + plotW, t.y);
+        tCtx.stroke();
+        tCtx.fillText(t.amp.toFixed(2), padL - 4, t.y);
+      });
+
+      // センターラインの強調
+      tCtx.strokeStyle = '#2e3846';
       tCtx.beginPath();
-      const sliceWidth = timeCanvas.width / data.length;
-      let x = 0;
-      for (let i = 0; i < data.length; i++) {
-        const v = data[i]; // -1.0 to 1.0
-        const y = (0.5 - v / 2) * timeCanvas.height;
-        if (i === 0) tCtx.moveTo(x, y); else tCtx.lineTo(x, y);
-        x += sliceWidth;
-      }
+      tCtx.moveTo(padL, midY);
+      tCtx.lineTo(padL + plotW, midY);
       tCtx.stroke();
+
+      // 横軸グリッド線とラベル (時間: ms)
+      const xTickCount = 5;
+      tCtx.textAlign = 'center';
+      tCtx.textBaseline = 'top';
+
+      for (let i = 0; i <= xTickCount; i++) {
+        const x = padL + (i / xTickCount) * plotW;
+        const ms = (i / xTickCount) * displayMs;
+        tCtx.strokeStyle = '#20242e';
+        tCtx.beginPath();
+        tCtx.moveTo(x, padT);
+        tCtx.lineTo(x, padT + plotH);
+        tCtx.stroke();
+        tCtx.fillText(`${Math.round(ms)}ms`, x, padT + plotH + 4);
+      }
+
+      // 波形描画
+      if (data && data.length > 0) {
+        tCtx.save();
+        tCtx.beginPath();
+        tCtx.rect(padL, padT, plotW, plotH);
+        tCtx.clip();
+
+        tCtx.strokeStyle = '#00e5ff';
+        tCtx.lineWidth = 2;
+        tCtx.beginPath();
+
+        const count = Math.min(data.length, displaySamples);
+        const step = count / plotW;
+
+        for (let px = 0; px < plotW; px++) {
+          const sampleIdx = Math.floor(px * step);
+          const v = (sampleIdx < count) ? data[sampleIdx] : 0;
+          // 振幅スケーリング
+          const y = midY - (v * scale) * (plotH / 2);
+          if (px === 0) tCtx.moveTo(padL + px, y);
+          else tCtx.lineTo(padL + px, y);
+        }
+        tCtx.stroke();
+        tCtx.restore();
+      }
     }
 
+    // --- 周波数スペクトル描画（目盛り・単位付き）---
     function drawFrequency(data) {
-      fCtx.clearRect(0, 0, freqCanvas.width, freqCanvas.height);
-      fCtx.fillStyle = '#ff0055';
-      const barWidth = freqCanvas.width / data.length;
-      for (let i = 0; i < data.length; i++) {
-        // data[i] は -Infinity 〜 0 dBFS
-        const val = Math.max(-100, data[i]);
-        const barHeight = ((val + 100) / 100) * freqCanvas.height;
-        fCtx.fillRect(i * barWidth, freqCanvas.height - barHeight, barWidth, barHeight);
+      const w = freqCanvas.width;
+      const h = freqCanvas.height;
+      if (w === 0 || h === 0) return;
+
+      const padL = 38;
+      const padR = 12;
+      const padT = 16;
+      const padB = 24;
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      fCtx.fillStyle = '#090a0f';
+      fCtx.fillRect(0, 0, w, h);
+
+      // 縦軸グリッド線とdBラベル (-100dB 〜 0dB)
+      fCtx.lineWidth = 1;
+      fCtx.strokeStyle = '#20242e';
+      fCtx.fillStyle = '#607d8b';
+      fCtx.font = `${Math.max(10, Math.floor(h * 0.038))}px monospace`;
+      fCtx.textAlign = 'right';
+      fCtx.textBaseline = 'middle';
+
+      const dBTicks = [0, -20, -40, -60, -80, -100];
+      dBTicks.forEach(db => {
+        const y = padT + ((0 - db) / 100) * plotH;
+        fCtx.beginPath();
+        fCtx.moveTo(padL, y);
+        fCtx.lineTo(padL + plotW, y);
+        fCtx.stroke();
+        fCtx.fillText(`${db}`, padL - 4, y);
+      });
+
+      // 横軸 (周波数: 0Hz 〜 8000Hz 重点表示)
+      const maxFreq = 8000;
+      const freqTicks = [0, 1000, 2000, 4000, 6000, 8000];
+      fCtx.textAlign = 'center';
+      fCtx.textBaseline = 'top';
+
+      freqTicks.forEach(f => {
+        const x = padL + (f / maxFreq) * plotW;
+        fCtx.beginPath();
+        fCtx.moveTo(x, padT);
+        fCtx.lineTo(x, padT + plotH);
+        fCtx.stroke();
+        const lbl = f >= 1000 ? `${f / 1000}k` : `${f}`;
+        fCtx.fillText(`${lbl}Hz`, x, padT + plotH + 4);
+      });
+
+      // スペクトルバー描画
+      if (data && data.length > 0) {
+        fCtx.save();
+        fCtx.beginPath();
+        fCtx.rect(padL, padT, plotW, plotH);
+        fCtx.clip();
+
+        fCtx.fillStyle = '#ff1744';
+        const nyquist = sampleRate / 2;
+        const maxBin = Math.floor((maxFreq / nyquist) * data.length);
+        const barWidth = Math.max(1, plotW / maxBin);
+
+        for (let i = 0; i < maxBin; i++) {
+          const val = Math.max(-100, Math.min(0, data[i])); // -100 to 0
+          const barH = ((val + 100) / 100) * plotH;
+          const x = padL + (i / maxBin) * plotW;
+          const y = padT + plotH - barH;
+          fCtx.fillRect(x, y, barWidth, barH);
+        }
+        fCtx.restore();
       }
     }
+
+    // 初回初期化
+    setTimeout(resizeCanvases, 100);
   </script>
 </body>
 </html>
