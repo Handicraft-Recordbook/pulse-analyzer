@@ -331,14 +331,16 @@
       const h = timeCanvas.height;
       if (w === 0 || h === 0) return;
 
+      const dpr = window.devicePixelRatio || 1;
       const scale = parseFloat(volScaleInput.value);
       const displayMs = parseFloat(timeRangeInput.value);
       const displaySamples = Math.floor((displayMs / 1000) * sampleRate);
 
-      const padL = 38;
-      const padR = 12;
-      const padT = 16;
-      const padB = 24;
+      // ラベル切れを防ぐためパディングを拡大（Retina解像度考慮）
+      const padL = Math.round(52 * dpr);
+      const padR = Math.round(18 * dpr);
+      const padT = Math.round(18 * dpr);
+      const padB = Math.round(30 * dpr);
       const plotW = w - padL - padR;
       const plotH = h - padT - padB;
       const midY = padT + plotH / 2;
@@ -349,8 +351,9 @@
       // グリッド線と縦軸ラベル (振幅)
       tCtx.lineWidth = 1;
       tCtx.strokeStyle = '#20242e';
-      tCtx.fillStyle = '#607d8b';
-      tCtx.font = `${Math.max(10, Math.floor(h * 0.038))}px monospace`;
+      tCtx.fillStyle = '#78909c';
+      const fontSize = Math.max(10 * dpr, Math.floor(h * 0.038));
+      tCtx.font = `${fontSize}px monospace`;
       tCtx.textAlign = 'right';
       tCtx.textBaseline = 'middle';
 
@@ -368,7 +371,7 @@
         tCtx.moveTo(padL, t.y);
         tCtx.lineTo(padL + plotW, t.y);
         tCtx.stroke();
-        tCtx.fillText(t.amp.toFixed(2), padL - 4, t.y);
+        tCtx.fillText(t.amp.toFixed(2), padL - (6 * dpr), t.y);
       });
 
       // センターラインの強調
@@ -391,7 +394,7 @@
         tCtx.moveTo(x, padT);
         tCtx.lineTo(x, padT + plotH);
         tCtx.stroke();
-        tCtx.fillText(`${Math.round(ms)}ms`, x, padT + plotH + 4);
+        tCtx.fillText(`${Math.round(ms)}ms`, x, padT + plotH + (5 * dpr));
       }
 
       // 波形描画
@@ -402,7 +405,7 @@
         tCtx.clip();
 
         tCtx.strokeStyle = '#00e5ff';
-        tCtx.lineWidth = 2;
+        tCtx.lineWidth = Math.max(1.5, 1.8 * dpr);
         tCtx.beginPath();
 
         const count = Math.min(data.length, displaySamples);
@@ -427,10 +430,12 @@
       const h = freqCanvas.height;
       if (w === 0 || h === 0) return;
 
-      const padL = 38;
-      const padR = 12;
-      const padT = 16;
-      const padB = 24;
+      const dpr = window.devicePixelRatio || 1;
+      // ラベル切れを防ぐためパディングを拡大（Retina解像度考慮）
+      const padL = Math.round(52 * dpr);
+      const padR = Math.round(18 * dpr);
+      const padT = Math.round(18 * dpr);
+      const padB = Math.round(30 * dpr);
       const plotW = w - padL - padR;
       const plotH = h - padT - padB;
 
@@ -440,8 +445,9 @@
       // 縦軸グリッド線とdBラベル (-100dB 〜 0dB)
       fCtx.lineWidth = 1;
       fCtx.strokeStyle = '#20242e';
-      fCtx.fillStyle = '#607d8b';
-      fCtx.font = `${Math.max(10, Math.floor(h * 0.038))}px monospace`;
+      fCtx.fillStyle = '#78909c';
+      const fontSize = Math.max(10 * dpr, Math.floor(h * 0.038));
+      fCtx.font = `${fontSize}px monospace`;
       fCtx.textAlign = 'right';
       fCtx.textBaseline = 'middle';
 
@@ -452,7 +458,7 @@
         fCtx.moveTo(padL, y);
         fCtx.lineTo(padL + plotW, y);
         fCtx.stroke();
-        fCtx.fillText(`${db}`, padL - 4, y);
+        fCtx.fillText(`${db}dB`, padL - (6 * dpr), y);
       });
 
       // 横軸 (周波数: 0Hz 〜 8000Hz 重点表示)
@@ -468,7 +474,7 @@
         fCtx.lineTo(x, padT + plotH);
         fCtx.stroke();
         const lbl = f >= 1000 ? `${f / 1000}k` : `${f}`;
-        fCtx.fillText(`${lbl}Hz`, x, padT + plotH + 4);
+        fCtx.fillText(`${lbl}Hz`, x, padT + plotH + (5 * dpr));
       });
 
       // スペクトルバー描画
