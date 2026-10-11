@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Pulse Analyzer</title>
+  <style>
+    body { font-family: sans-serif; background: #111; color: #eee; padding: 20px; }
+    canvas { background: #222; margin-bottom: 10px; display: block; }
+    button { padding: 10px 20px; font-size: 16px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <button id="startBtn">マイク開始 (iOSはタップ必須)</button>
+  <div>
+    <label>トリガー閾値 (0.01 - 1.0): 
+      <input type="range" id="threshold" min="0.01" max="0.5" step="0.01" value="0.1">
+      <span id="thVal">0.1</span>
+    </label>
+  </div>
+  <h3>捕捉されたパルス波形 (Time Domain)</h3>
+  <canvas id="timeCanvas" width="600" height="200"></canvas>
+  <h3>周波数スペクトル (FFT)</h3>
+  <canvas id="freqCanvas" width="600" height="200"></canvas>
+
+  <script>
+    let audioCtx, analyser, source;
+    const thresholdInput = document.getElementById('threshold');
+    const thVal = document.getElementById('thVal');
+    thresholdInput.oninput = () => thVal.textContent = thresholdInput.value;
+
+    const timeCanvas = document.getElementById('timeCanvas');
+    const freqCanvas = document.getElementById('freqCanvas');
+    const tCtx = timeCanvas.getContext('2d');
+    const fCtx = freqCanvas.getContext('2d');
+
+    document.getElementById('startBtn').addEventListener('click', async () => {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          autoGainControl: false,
+          echoCancellation: false,
+          noiseSuppression: false
+        }
+      });
+
+      source = audioCtx.createMediaStreamSource(stream);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 2048;
+      source.connect(analyser);
+
+      listenLoop();
+    });
+
+    let isTriggered = false;
+    let postTriggerCount = 0;
+    const timeData = new Float32Array(2048);
+    const freqData = new Float32Array(analyser ? analyser.frequencyBinCount : 1024);
+
+    function listenLoop() {
+      requestAnimationFrame(listenLoop);
+      if (!analyser) return;
+
+      analyser.getFloatTimeDomainData(timeData);
+      const threshold = parseFloat(thresholdInput.value);
+
+      // ピーク検出
+      let maxVal = 0;
+      for (let i = 0; i < timeData.length; i++) {
+        if (Math.abs(timeData[i]) > maxVal) maxVal = Math.abs(timeData[i]);
+      }
+
+      // トリガー処理 (過度な連続更新を防ぐための簡易ロック)
+      if (maxVal > threshold && !isTriggered) {
+        isTriggered = true;
+        drawTimeDomain(timeData);
+        
+        analyser.getFloatFrequencyData(freqData);
+        drawFrequency(freqData);
+
+        // 2秒周期のため、1秒間は再トリガーを抑制
+        setTimeout(() => { isTriggered = false; }, 1000);
+      }
+    }
+
+    function drawTimeDomain(data) {
+      tCtx.clearRect(0, 0, timeCanvas.width, timeCanvas.height);
+      tCtx.strokeStyle = '#00ffcc';
+      tCtx.lineWidth = 1.5;
+      tCtx.beginPath();
+      const sliceWidth = timeCanvas.width / data.length;
+      let x = 0;
+      for (let i = 0; i < data.length; i++) {
+        const v = data[i]; // -1.0 to 1.0
+        const y = (0.5 - v / 2) * timeCanvas.height;
+        if (i === 0) tCtx.moveTo(x, y); else tCtx.lineTo(x, y);
+        x += sliceWidth;
+      }
+      tCtx.stroke();
+    }
+
+    function drawFrequency(data) {
+      fCtx.clearRect(0, 0, freqCanvas.width, freqCanvas.height);
+      fCtx.fillStyle = '#ff0055';
+      const barWidth = freqCanvas.width / data.length;
+      for (let i = 0; i < data.length; i++) {
+        // data[i] は -Infinity 〜 0 dBFS
+        const val = Math.max(-100, data[i]);
+        const barHeight = ((val + 100) / 100) * freqCanvas.height;
+        fCtx.fillRect(i * barWidth, freqCanvas.height - barHeight, barWidth, barHeight);
+      }
+    }
+  </script>
+</body>
+</html>
