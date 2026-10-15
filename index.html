@@ -29,38 +29,38 @@
       flex-direction: column;
       height: 100vh;
       height: 100dvh;
-      padding: 6px 8px;
-      overflow-y: auto; /* メモ入力時のキーボード表示に対応 */
+      padding: 4px 8px;
+      overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
     header {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      padding-bottom: 3px;
+      padding-bottom: 2px;
       flex-shrink: 0;
     }
     h1 {
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 700;
       letter-spacing: 0.3px;
       color: #fff;
     }
     .header-date-container {
-      font-size: 10px;
+      font-size: 9.5px;
       color: var(--text-muted);
       font-family: "SF Mono", Menlo, Consolas, monospace;
     }
     .top-controls {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      margin-bottom: 4px;
+      gap: 3px;
+      margin-bottom: 3px;
       flex-shrink: 0;
     }
     .action-btn {
       width: 100%;
-      height: 32px;
+      height: 30px;
       border: none;
       border-radius: 6px;
       font-size: 12px;
@@ -87,7 +87,7 @@
     }
     .mic-select {
       flex: 1;
-      height: 24px;
+      height: 22px;
       background: var(--card-bg);
       border: 1px solid var(--border);
       color: var(--text);
@@ -100,22 +100,22 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 4px 8px;
+      padding: 3px 8px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
-      margin-bottom: 4px;
+      gap: 1px;
+      margin-bottom: 3px;
       flex-shrink: 0;
     }
     .param-row {
       display: flex;
       align-items: center;
-      height: 22px;
+      height: 20px;
       gap: 6px;
     }
     .param-label {
-      width: 90px;
-      font-size: 10px;
+      width: 96px;
+      font-size: 9.5px;
       color: var(--text);
       flex-shrink: 0;
     }
@@ -129,7 +129,7 @@
       width: 44px;
       text-align: right;
       font-family: "SF Mono", Menlo, Consolas, monospace;
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 600;
       color: var(--accent);
       flex-shrink: 0;
@@ -139,7 +139,7 @@
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 3px 5px;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
       flex-shrink: 0;
     }
     .chart-header {
@@ -147,10 +147,10 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 2px;
-      font-size: 10px;
+      font-size: 9.5px;
       color: var(--text-muted);
     }
-    .chart-title { font-weight: 600; color: #cbd5e1; font-size: 10px; }
+    .chart-title { font-weight: 600; color: #cbd5e1; font-size: 9.5px; }
     .status-badge {
       padding: 1px 4px;
       border-radius: 3px;
@@ -180,26 +180,26 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 4px 6px;
+      padding: 3px 6px;
       flex-shrink: 0;
     }
     .memo-title {
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 600;
       color: #cbd5e1;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
       display: block;
     }
     .memo-textarea {
       width: 100%;
-      height: 38px;
+      height: 32px;
       background: #090b0e;
       border: 1px solid var(--border);
       border-radius: 4px;
       color: var(--text);
-      font-size: 11px;
+      font-size: 10.5px;
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      padding: 4px 6px;
+      padding: 3px 6px;
       resize: none;
       outline: none;
       user-select: text;
@@ -235,13 +235,18 @@
     </div>
     <div class="param-row">
       <span class="param-label">Time Span</span>
-      <input type="range" id="timeSpan" class="param-slider" min="20" max="200" step="5" value="100">
+      <input type="range" id="timeSpan" class="param-slider" min="15" max="200" step="5" value="100">
       <span id="tsVal" class="param-val">100ms</span>
     </div>
     <div class="param-row">
       <span class="param-label">Vertical Scale</span>
       <input type="range" id="vScale" class="param-slider" min="0.5" max="10.0" step="0.5" value="1.0">
       <span id="vsVal" class="param-val">1.0x</span>
+    </div>
+    <div class="param-row">
+      <span class="param-label">Trigger Lock</span>
+      <input type="range" id="triggerLock" class="param-slider" min="0.5" max="3.0" step="0.1" value="1.2">
+      <span id="tlVal" class="param-val">1.2s</span>
     </div>
   </div>
 
@@ -282,9 +287,11 @@ const micSelect     = document.getElementById('micSelect');
 const thresholdInput= document.getElementById('threshold');
 const timeSpanInput = document.getElementById('timeSpan');
 const vScaleInput   = document.getElementById('vScale');
+const triggerLockInput = document.getElementById('triggerLock');
 const thVal         = document.getElementById('thVal');
 const tsVal         = document.getElementById('tsVal');
 const vsVal         = document.getElementById('vsVal');
+const tlVal         = document.getElementById('tlVal');
 const statusBadge   = document.getElementById('statusBadge');
 const timeCanvas    = document.getElementById('timeCanvas');
 const freqCanvas    = document.getElementById('freqCanvas');
@@ -301,6 +308,9 @@ vScaleInput.oninput = () => {
   vsVal.textContent = parseFloat(vScaleInput.value).toFixed(1) + 'x';
   if (lastCapturedWave) renderTimeDomain(lastCapturedWave);
 };
+triggerLockInput.oninput = () => {
+  tlVal.textContent = parseFloat(triggerLockInput.value).toFixed(1) + 's';
+};
 
 // ─── Audio Engine State ─────────────────────────────────────────────────────
 let audioCtx      = null;
@@ -312,9 +322,9 @@ let animFrameId   = null;
 let actualSampleRate = 44100;
 
 // ─── Ring Buffer ────────────────────────────────────────────────────────────
-const PRE_TRIGGER_MS = 5; // 5ms pre-trigger
+const PRE_TRIGGER_MS = 5;
 const BUFFER_SECONDS = 2;
-const BUFFER_SIZE    = 131072; // Power of 2
+const BUFFER_SIZE    = 131072;
 const ringBuffer     = new Float32Array(BUFFER_SIZE);
 let   ringHead       = 0;
 
@@ -416,7 +426,7 @@ async function startAudio() {
 
     sourceNode = audioCtx.createMediaStreamSource(currentStream);
     analyser   = audioCtx.createAnalyser();
-    analyser.fftSize               = 4096; // Higher resolution for low frequency log view
+    analyser.fftSize               = 4096;
     analyser.smoothingTimeConstant = 0.05;
     sourceNode.connect(analyser);
 
@@ -478,7 +488,7 @@ function processLoop() {
   statusBadge.textContent = 'CAPTURED';
   statusBadge.className   = 'status-badge captured';
 
-  const maxPostMs    = 200; // Upper limit 200ms
+  const maxPostMs    = 200;
   const preSamples   = Math.floor(actualSampleRate * PRE_TRIGGER_MS / 1000);
   const postSamples  = Math.floor(actualSampleRate * maxPostMs / 1000);
   const totalSamples = preSamples + postSamples;
@@ -502,17 +512,19 @@ function processLoop() {
   lastCapturedFreq = freqData;
   renderFrequency(lastCapturedFreq);
 
+  // Trigger Lock Time from Slider
+  const lockTimeMs = Math.round(parseFloat(triggerLockInput.value) * 1000);
   setTimeout(() => {
     isTriggerLocked = false;
     if (isRunning) {
       statusBadge.textContent = 'STANDBY';
       statusBadge.className   = 'status-badge';
     }
-  }, 1200);
+  }, lockTimeMs);
 }
 
 // ─── Time Domain Grid ────────────────────────────────────────────────────────
-function drawTimeGrid(pL = 46, pB = 22, postDurationMs = 100, scale = 1.0) {
+function drawTimeGrid(pL = 46, pB = 20, postDurationMs = 100, scale = 1.0) {
   const { w: W, h: H } = canvasSize.time;
   if (!W || !H) return;
   tCtx.clearRect(0, 0, W, H);
@@ -542,25 +554,27 @@ function drawTimeGrid(pL = 46, pB = 22, postDurationMs = 100, scale = 1.0) {
   const totalMs = PRE_TRIGGER_MS + postDurationMs;
   const triggerX = pL + (PRE_TRIGGER_MS / totalMs) * plotW;
 
-  // Red Trigger Line
   tCtx.strokeStyle = '#ff3366';
   tCtx.lineWidth   = 1;
   tCtx.setLineDash([3, 3]);
   tCtx.beginPath(); tCtx.moveTo(triggerX, 0); tCtx.lineTo(triggerX, plotH); tCtx.stroke();
   tCtx.setLineDash([]);
   tCtx.fillStyle = '#ff3366';
-  tCtx.fillText('0ms', triggerX - 8, H - 6);
+  tCtx.fillText('0ms', triggerX - 8, H - 5);
 
   tCtx.strokeStyle = '#1d222d';
   tCtx.lineWidth   = 1;
   tCtx.fillStyle   = '#64748b';
 
-  // Adaptive Time Ticks
-  const interval = postDurationMs <= 50 ? 10 : (postDurationMs <= 100 ? 25 : 50);
+  let interval = 25;
+  if (postDurationMs <= 25) interval = 5;
+  else if (postDurationMs <= 50) interval = 10;
+  else if (postDurationMs > 100) interval = 50;
+
   for (let ms = interval; ms <= postDurationMs; ms += interval) {
     const x = pL + ((PRE_TRIGGER_MS + ms) / totalMs) * plotW;
     tCtx.beginPath(); tCtx.moveTo(x, 0); tCtx.lineTo(x, plotH); tCtx.stroke();
-    tCtx.fillText(`${ms}ms`, x - 10, H - 6);
+    tCtx.fillText(`${ms}ms`, x - 10, H - 5);
   }
 }
 
@@ -568,7 +582,7 @@ function drawTimeGrid(pL = 46, pB = 22, postDurationMs = 100, scale = 1.0) {
 function renderTimeDomain(wave) {
   const postDurationMs = parseInt(timeSpanInput.value);
   const scale          = parseFloat(vScaleInput.value);
-  const pL = 46, pB = 22;
+  const pL = 46, pB = 20;
 
   drawTimeGrid(pL, pB, postDurationMs, scale);
 
@@ -621,7 +635,7 @@ function renderTimeDomain(wave) {
 // ─── Logarithmic Frequency Scale (20Hz - 20kHz) ──────────────────────────────
 const LOG_MIN_HZ = 20;
 const LOG_MAX_HZ = 20000;
-const LOG_SPAN   = Math.log10(LOG_MAX_HZ / LOG_MIN_HZ); // log10(1000) = 3
+const LOG_SPAN   = Math.log10(LOG_MAX_HZ / LOG_MIN_HZ);
 
 function hzToLogX(hz, plotW, pL) {
   const clampedHz = Math.max(LOG_MIN_HZ, Math.min(LOG_MAX_HZ, hz));
@@ -635,7 +649,7 @@ function logXToHz(px, plotW) {
 }
 
 // ─── Log Frequency Grid ──────────────────────────────────────────────────────
-function drawFreqGrid(pL = 40, pB = 20) {
+function drawFreqGrid(pL = 40, pB = 18) {
   const { w: W, h: H } = canvasSize.freq;
   if (!W || !H) return;
   fCtx.clearRect(0, 0, W, H);
@@ -646,7 +660,6 @@ function drawFreqGrid(pL = 40, pB = 20) {
   fCtx.lineWidth = 1;
   fCtx.font      = '8.5px "SF Mono", monospace';
 
-  // Vertical dB grid
   const dbSteps = [0, -20, -40, -60, -80, -100];
   dbSteps.forEach((db, i) => {
     const y = (i / (dbSteps.length - 1)) * plotH;
@@ -656,7 +669,6 @@ function drawFreqGrid(pL = 40, pB = 20) {
     fCtx.fillText(`${db}`, 2, y + 3);
   });
 
-  // Log Frequency Grid Lines & Labels
   const gridFreqs = [
     { hz: 20,    label: '20',  major: true },
     { hz: 50,    label: '',    major: false },
@@ -681,14 +693,14 @@ function drawFreqGrid(pL = 40, pB = 20) {
     if (item.label) {
       fCtx.fillStyle = item.major ? '#94a3b8' : '#526074';
       const offset = (item.hz === 20) ? 0 : (item.hz === 20000 ? 16 : 8);
-      fCtx.fillText(item.label, x - offset, H - 5);
+      fCtx.fillText(item.label, x - offset, H - 4);
     }
   });
 }
 
 // ─── Log Frequency Spectrum Render ───────────────────────────────────────────
 function renderFrequency(freqData) {
-  const pL = 40, pB = 20;
+  const pL = 40, pB = 18;
   drawFreqGrid(pL, pB);
 
   const { w: W, h: H } = canvasSize.freq;
@@ -705,7 +717,6 @@ function renderFrequency(freqData) {
   grad.addColorStop(0.5, '#0088ff');
   grad.addColorStop(1,   '#0044aa');
 
-  // Fill Area
   fCtx.beginPath();
   fCtx.moveTo(pL, plotH);
 
@@ -713,8 +724,6 @@ function renderFrequency(freqData) {
     const hz = logXToHz(px, plotW);
     const binFloat = (hz / nyquist) * binCount;
     const bin = Math.min(binCount - 1, Math.floor(binFloat));
-
-    // Linear interpolation between FFT bins
     const nextBin = Math.min(binCount - 1, bin + 1);
     const frac = binFloat - bin;
     const dbVal = freqData[bin] * (1 - frac) + freqData[nextBin] * frac;
@@ -731,7 +740,6 @@ function renderFrequency(freqData) {
   fCtx.fillStyle = grad;
   fCtx.fill();
 
-  // Stroke Outline
   fCtx.beginPath();
   for (let px = 0; px < plotW; px++) {
     const hz = logXToHz(px, plotW);
