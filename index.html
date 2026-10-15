@@ -29,18 +29,19 @@
       flex-direction: column;
       height: 100vh;
       height: 100dvh;
-      padding: 8px 10px;
-      overflow: hidden;
+      padding: 6px 8px;
+      overflow-y: auto; /* メモ入力時のキーボード表示に対応 */
+      -webkit-overflow-scrolling: touch;
     }
     header {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      padding-bottom: 4px;
+      padding-bottom: 3px;
       flex-shrink: 0;
     }
     h1 {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       letter-spacing: 0.3px;
       color: #fff;
@@ -53,16 +54,16 @@
     .top-controls {
       display: flex;
       flex-direction: column;
-      gap: 5px;
-      margin-bottom: 6px;
+      gap: 4px;
+      margin-bottom: 4px;
       flex-shrink: 0;
     }
     .action-btn {
       width: 100%;
-      height: 36px;
+      height: 32px;
       border: none;
-      border-radius: 8px;
-      font-size: 13px;
+      border-radius: 6px;
+      font-size: 12px;
       font-weight: 700;
       cursor: pointer;
       display: flex;
@@ -76,59 +77,59 @@
     .mic-select-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
     .mic-select-label {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--text-muted);
       white-space: nowrap;
       flex-shrink: 0;
     }
     .mic-select {
       flex: 1;
-      height: 26px;
+      height: 24px;
       background: var(--card-bg);
       border: 1px solid var(--border);
       color: var(--text);
-      border-radius: 6px;
-      padding: 0 8px;
-      font-size: 11px;
+      border-radius: 5px;
+      padding: 0 6px;
+      font-size: 10px;
       outline: none;
     }
     .params-container {
       background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 5px 10px;
+      border-radius: 6px;
+      padding: 4px 8px;
       display: flex;
       flex-direction: column;
-      gap: 3px;
-      margin-bottom: 6px;
+      gap: 2px;
+      margin-bottom: 4px;
       flex-shrink: 0;
     }
     .param-row {
       display: flex;
       align-items: center;
-      height: 24px;
-      gap: 8px;
+      height: 22px;
+      gap: 6px;
     }
     .param-label {
-      width: 95px;
-      font-size: 11px;
+      width: 90px;
+      font-size: 10px;
       color: var(--text);
       flex-shrink: 0;
     }
     .param-slider {
       flex: 1;
       accent-color: var(--accent);
-      height: 4px;
+      height: 3px;
       cursor: pointer;
     }
     .param-val {
-      width: 48px;
+      width: 44px;
       text-align: right;
       font-family: "SF Mono", Menlo, Consolas, monospace;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
       color: var(--accent);
       flex-shrink: 0;
@@ -136,9 +137,9 @@
     .chart-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 4px 6px;
-      margin-bottom: 5px;
+      border-radius: 6px;
+      padding: 3px 5px;
+      margin-bottom: 4px;
       flex-shrink: 0;
     }
     .chart-header {
@@ -149,12 +150,12 @@
       font-size: 10px;
       color: var(--text-muted);
     }
-    .chart-title { font-weight: 600; color: #cbd5e1; }
+    .chart-title { font-weight: 600; color: #cbd5e1; font-size: 10px; }
     .status-badge {
-      padding: 1px 5px;
-      border-radius: 4px;
+      padding: 1px 4px;
+      border-radius: 3px;
       font-family: "SF Mono", Menlo, monospace;
-      font-size: 9px;
+      font-size: 8px;
       background: #242c3d;
       color: #94a3b8;
     }
@@ -172,6 +173,40 @@
       aspect-ratio: 5 / 2;
       background: #090b0e;
       border-radius: 4px;
+    }
+
+    /* Memo Area */
+    .memo-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 6px;
+      flex-shrink: 0;
+    }
+    .memo-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 3px;
+      display: block;
+    }
+    .memo-textarea {
+      width: 100%;
+      height: 38px;
+      background: #090b0e;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 11px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      padding: 4px 6px;
+      resize: none;
+      outline: none;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .memo-textarea:focus {
+      border-color: var(--accent);
     }
   </style>
 </head>
@@ -200,8 +235,8 @@
     </div>
     <div class="param-row">
       <span class="param-label">Time Span</span>
-      <input type="range" id="timeSpan" class="param-slider" min="50" max="600" step="10" value="300">
-      <span id="tsVal" class="param-val">300ms</span>
+      <input type="range" id="timeSpan" class="param-slider" min="20" max="200" step="5" value="100">
+      <span id="tsVal" class="param-val">100ms</span>
     </div>
     <div class="param-row">
       <span class="param-label">Vertical Scale</span>
@@ -221,13 +256,18 @@
   <div class="chart-card">
     <div class="chart-header">
       <span class="chart-title">Frequency Spectrum (FFT)</span>
-      <span id="freqRange">0Hz - 8kHz</span>
+      <span id="freqRange">20Hz - 20kHz (Log)</span>
     </div>
     <canvas id="freqCanvas"></canvas>
   </div>
 
+  <div class="memo-card">
+    <span class="memo-title">Memo</span>
+    <textarea id="memoInput" class="memo-textarea" placeholder="Enter notes here (e.g., Speaker #1 test result)..."></textarea>
+  </div>
+
 <script>
-// ─── Date (live clock for long sessions) ────────────────────────────────────
+// ─── Live Date ───────────────────────────────────────────────────────────────
 function updateDate() {
   const d = new Date();
   document.getElementById('currentDate').textContent =
@@ -236,7 +276,7 @@ function updateDate() {
 updateDate();
 setInterval(updateDate, 60000);
 
-// ─── UI refs ────────────────────────────────────────────────────────────────
+// ─── UI References ───────────────────────────────────────────────────────────
 const toggleBtn     = document.getElementById('toggleBtn');
 const micSelect     = document.getElementById('micSelect');
 const thresholdInput= document.getElementById('threshold');
@@ -251,7 +291,7 @@ const freqCanvas    = document.getElementById('freqCanvas');
 const tCtx          = timeCanvas.getContext('2d');
 const fCtx          = freqCanvas.getContext('2d');
 
-// ─── Slider handlers ────────────────────────────────────────────────────────
+// ─── Slider Handlers ─────────────────────────────────────────────────────────
 thresholdInput.oninput = () => thVal.textContent = parseFloat(thresholdInput.value).toFixed(2);
 timeSpanInput.oninput  = () => {
   tsVal.textContent = timeSpanInput.value + 'ms';
@@ -262,7 +302,7 @@ vScaleInput.oninput = () => {
   if (lastCapturedWave) renderTimeDomain(lastCapturedWave);
 };
 
-// ─── Audio engine state ──────────────────────────────────────────────────────
+// ─── Audio Engine State ─────────────────────────────────────────────────────
 let audioCtx      = null;
 let analyser      = null;
 let sourceNode    = null;
@@ -271,22 +311,19 @@ let isRunning     = false;
 let animFrameId   = null;
 let actualSampleRate = 44100;
 
-// ─── Ring buffer ─────────────────────────────────────────────────────────────
-const PRE_TRIGGER_MS  = 10;
-const BUFFER_SECONDS  = 3;
-const BUFFER_SIZE     = Math.pow(2, Math.ceil(Math.log2(44100 * BUFFER_SECONDS)));
-const ringBuffer      = new Float32Array(BUFFER_SIZE);
-let   ringHead        = 0;
+// ─── Ring Buffer ────────────────────────────────────────────────────────────
+const PRE_TRIGGER_MS = 5; // 5ms pre-trigger
+const BUFFER_SECONDS = 2;
+const BUFFER_SIZE    = 131072; // Power of 2
+const ringBuffer     = new Float32Array(BUFFER_SIZE);
+let   ringHead       = 0;
 
 let isTriggerLocked  = false;
 let lastCapturedWave = null;
 let lastCapturedFreq = null;
 
-// ─── Canvas size cache ───────────────────────────────────────────────────────
-const canvasSize = {
-  time: { w: 0, h: 0 },
-  freq: { w: 0, h: 0 }
-};
+// ─── Canvas Size Cache & DPI Resize ──────────────────────────────────────────
+const canvasSize = { time: { w: 0, h: 0 }, freq: { w: 0, h: 0 } };
 
 function resizeCanvas(canvas, ctx, cacheKey) {
   const dpr  = window.devicePixelRatio || 1;
@@ -303,7 +340,7 @@ function resizeCanvas(canvas, ctx, cacheKey) {
 let resizeTimer = null;
 function initCanvases() {
   resizeCanvas(timeCanvas, tCtx, 'time');
-  resizeCanvas(freqCanvas,  fCtx, 'freq');
+  resizeCanvas(freqCanvas, fCtx, 'freq');
   drawTimeGrid();
   drawFreqGrid();
   if (lastCapturedWave) renderTimeDomain(lastCapturedWave);
@@ -315,11 +352,11 @@ window.addEventListener('resize', () => {
 });
 setTimeout(initCanvases, 100);
 
-// ─── Mic enumeration ─────────────────────────────────────────────────────────
+// ─── Mic Enumeration ────────────────────────────────────────────────────────
 async function populateMics() {
   try {
-    const devices    = await navigator.mediaDevices.enumerateDevices();
-    const audioIn    = devices.filter(d => d.kind === 'audioinput');
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const audioIn = devices.filter(d => d.kind === 'audioinput');
     const currentVal = micSelect.value;
     micSelect.innerHTML = '';
 
@@ -347,7 +384,7 @@ async function populateMics() {
 }
 navigator.mediaDevices.ondevicechange = populateMics;
 
-// ─── Toggle button ────────────────────────────────────────────────────────────
+// ─── Toggle Button ───────────────────────────────────────────────────────────
 toggleBtn.addEventListener('click', async () => {
   if (isRunning) stopAudio(true);
   else           await startAudio();
@@ -357,15 +394,13 @@ micSelect.addEventListener('change', async () => {
   if (isRunning) { stopAudio(false); await startAudio(); }
 });
 
-// ─── Start audio ──────────────────────────────────────────────────────────────
+// ─── Start Audio ─────────────────────────────────────────────────────────────
 async function startAudio() {
   try {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
     if (audioCtx.state === 'suspended') await audioCtx.resume();
 
     actualSampleRate = audioCtx.sampleRate;
-    document.getElementById('freqRange').textContent =
-      `0Hz – ${Math.round(actualSampleRate / 2 / 1000)}kHz`;
 
     const deviceConstraint = micSelect.value ? { exact: micSelect.value } : undefined;
     currentStream = await navigator.mediaDevices.getUserMedia({
@@ -381,11 +416,11 @@ async function startAudio() {
 
     sourceNode = audioCtx.createMediaStreamSource(currentStream);
     analyser   = audioCtx.createAnalyser();
-    analyser.fftSize               = 2048;
-    analyser.smoothingTimeConstant = 0.1;
+    analyser.fftSize               = 4096; // Higher resolution for low frequency log view
+    analyser.smoothingTimeConstant = 0.05;
     sourceNode.connect(analyser);
 
-    pcmChunk = new Float32Array(analyser.fftSize);
+    pcmChunk = new Float32Array(1024);
 
     isRunning = true;
     toggleBtn.textContent = 'Stop Recording';
@@ -393,17 +428,11 @@ async function startAudio() {
 
     processLoop();
   } catch (err) {
-    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-      alert('Microphone permission was denied.\nPlease allow microphone access in Settings and try again.');
-    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-      alert('No microphone found.\nPlease connect a microphone and try again.');
-    } else {
-      alert('Microphone initialization failed:\n' + err.message);
-    }
+    alert('Microphone initialization failed: ' + err.message);
   }
 }
 
-// ─── Stop audio ───────────────────────────────────────────────────────────────
+// ─── Stop Audio ──────────────────────────────────────────────────────────────
 function stopAudio(fullReset = true) {
   isRunning = false;
   if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
@@ -420,8 +449,8 @@ function stopAudio(fullReset = true) {
   }
 }
 
-// ─── Processing loop ──────────────────────────────────────────────────────────
-let pcmChunk = new Float32Array(2048);
+// ─── Processing Loop ─────────────────────────────────────────────────────────
+let pcmChunk = new Float32Array(1024);
 
 function processLoop() {
   if (!isRunning) return;
@@ -449,10 +478,10 @@ function processLoop() {
   statusBadge.textContent = 'CAPTURED';
   statusBadge.className   = 'status-badge captured';
 
-  const maxPostMs   = parseInt(timeSpanInput.max);
-  const preSamples  = Math.floor(actualSampleRate * PRE_TRIGGER_MS / 1000);
-  const postSamples = Math.floor(actualSampleRate * maxPostMs / 1000);
-  const totalSamples= preSamples + postSamples;
+  const maxPostMs    = 200; // Upper limit 200ms
+  const preSamples   = Math.floor(actualSampleRate * PRE_TRIGGER_MS / 1000);
+  const postSamples  = Math.floor(actualSampleRate * maxPostMs / 1000);
+  const totalSamples = preSamples + postSamples;
 
   let triggerOffsetInChunk = 0;
   for (let i = 0; i < pcmChunk.length; i++) {
@@ -479,11 +508,11 @@ function processLoop() {
       statusBadge.textContent = 'STANDBY';
       statusBadge.className   = 'status-badge';
     }
-  }, 1500);
+  }, 1200);
 }
 
-// ─── Time-domain grid ─────────────────────────────────────────────────────────
-function drawTimeGrid(pL = 50, pB = 26, postDurationMs = 300, scale = 1.0) {
+// ─── Time Domain Grid ────────────────────────────────────────────────────────
+function drawTimeGrid(pL = 46, pB = 22, postDurationMs = 100, scale = 1.0) {
   const { w: W, h: H } = canvasSize.time;
   if (!W || !H) return;
   tCtx.clearRect(0, 0, W, H);
@@ -512,32 +541,34 @@ function drawTimeGrid(pL = 50, pB = 26, postDurationMs = 300, scale = 1.0) {
 
   const totalMs = PRE_TRIGGER_MS + postDurationMs;
   const triggerX = pL + (PRE_TRIGGER_MS / totalMs) * plotW;
+
+  // Red Trigger Line
   tCtx.strokeStyle = '#ff3366';
   tCtx.lineWidth   = 1;
   tCtx.setLineDash([3, 3]);
   tCtx.beginPath(); tCtx.moveTo(triggerX, 0); tCtx.lineTo(triggerX, plotH); tCtx.stroke();
   tCtx.setLineDash([]);
   tCtx.fillStyle = '#ff3366';
-  tCtx.fillText('0ms', triggerX - 10, H - 8);
+  tCtx.fillText('0ms', triggerX - 8, H - 6);
 
   tCtx.strokeStyle = '#1d222d';
   tCtx.lineWidth   = 1;
   tCtx.fillStyle   = '#64748b';
-  tCtx.fillText(`-${PRE_TRIGGER_MS}ms`, pL + 1, H - 8);
 
-  const tickIntervalMs = postDurationMs <= 150 ? 50 : 100;
-  for (let ms = tickIntervalMs; ms <= postDurationMs; ms += tickIntervalMs) {
+  // Adaptive Time Ticks
+  const interval = postDurationMs <= 50 ? 10 : (postDurationMs <= 100 ? 25 : 50);
+  for (let ms = interval; ms <= postDurationMs; ms += interval) {
     const x = pL + ((PRE_TRIGGER_MS + ms) / totalMs) * plotW;
     tCtx.beginPath(); tCtx.moveTo(x, 0); tCtx.lineTo(x, plotH); tCtx.stroke();
-    tCtx.fillText(`${ms}ms`, x - 10, H - 8);
+    tCtx.fillText(`${ms}ms`, x - 10, H - 6);
   }
 }
 
-// ─── Time-domain wave render ──────────────────────────────────────────────────
+// ─── Time Domain Waveform Render ─────────────────────────────────────────────
 function renderTimeDomain(wave) {
   const postDurationMs = parseInt(timeSpanInput.value);
   const scale          = parseFloat(vScaleInput.value);
-  const pL = 50, pB = 26;
+  const pL = 46, pB = 22;
 
   drawTimeGrid(pL, pB, postDurationMs, scale);
 
@@ -550,7 +581,7 @@ function renderTimeDomain(wave) {
 
   const totalMs      = PRE_TRIGGER_MS + postDurationMs;
   const totalSamples = Math.floor(actualSampleRate * totalMs / 1000);
-  const step = Math.max(1, totalSamples / plotW);
+  const step         = Math.max(1, totalSamples / plotW);
 
   tCtx.strokeStyle = '#00d2ff';
   tCtx.lineWidth   = 1.5;
@@ -587,8 +618,24 @@ function renderTimeDomain(wave) {
   tCtx.stroke();
 }
 
-// ─── Frequency spectrum grid ──────────────────────────────────────────────────
-function drawFreqGrid(pL = 40, pB = 22) {
+// ─── Logarithmic Frequency Scale (20Hz - 20kHz) ──────────────────────────────
+const LOG_MIN_HZ = 20;
+const LOG_MAX_HZ = 20000;
+const LOG_SPAN   = Math.log10(LOG_MAX_HZ / LOG_MIN_HZ); // log10(1000) = 3
+
+function hzToLogX(hz, plotW, pL) {
+  const clampedHz = Math.max(LOG_MIN_HZ, Math.min(LOG_MAX_HZ, hz));
+  const ratio = Math.log10(clampedHz / LOG_MIN_HZ) / LOG_SPAN;
+  return pL + ratio * plotW;
+}
+
+function logXToHz(px, plotW) {
+  const ratio = Math.max(0, Math.min(1, px / plotW));
+  return LOG_MIN_HZ * Math.pow(10, ratio * LOG_SPAN);
+}
+
+// ─── Log Frequency Grid ──────────────────────────────────────────────────────
+function drawFreqGrid(pL = 40, pB = 20) {
   const { w: W, h: H } = canvasSize.freq;
   if (!W || !H) return;
   fCtx.clearRect(0, 0, W, H);
@@ -596,57 +643,85 @@ function drawFreqGrid(pL = 40, pB = 22) {
   const plotW = W - pL - 6;
   const plotH = H - pB;
 
-  fCtx.strokeStyle = '#1d222d';
-  fCtx.lineWidth   = 1;
-  fCtx.fillStyle   = '#64748b';
-  fCtx.font        = '9px "SF Mono", monospace';
+  fCtx.lineWidth = 1;
+  fCtx.font      = '8.5px "SF Mono", monospace';
 
-  const dbMin = -100, dbMax = 0;
+  // Vertical dB grid
   const dbSteps = [0, -20, -40, -60, -80, -100];
-  dbSteps.forEach(db => {
-    const ratio = (dbMax - db) / (dbMax - dbMin);
-    const y     = ratio * plotH;
+  dbSteps.forEach((db, i) => {
+    const y = (i / (dbSteps.length - 1)) * plotH;
+    fCtx.strokeStyle = '#1d222d';
     fCtx.beginPath(); fCtx.moveTo(pL, y); fCtx.lineTo(W, y); fCtx.stroke();
+    fCtx.fillStyle = '#64748b';
     fCtx.fillText(`${db}`, 2, y + 3);
   });
 
-  const nyquist     = actualSampleRate / 2;
-  const freqTicksHz = [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000].filter(f => f <= nyquist);
-  freqTicksHz.forEach(hz => {
-    const x = pL + (hz / nyquist) * plotW;
-    fCtx.beginPath(); fCtx.moveTo(x, 0); fCtx.lineTo(x, plotH); fCtx.stroke();
-    fCtx.fillText(`${hz >= 1000 ? (hz/1000)+'k' : hz}`, x - 8, H - 5);
+  // Log Frequency Grid Lines & Labels
+  const gridFreqs = [
+    { hz: 20,    label: '20',  major: true },
+    { hz: 50,    label: '',    major: false },
+    { hz: 100,   label: '100', major: true },
+    { hz: 200,   label: '',    major: false },
+    { hz: 500,   label: '500', major: false },
+    { hz: 1000,  label: '1k',  major: true },
+    { hz: 2000,  label: '',    major: false },
+    { hz: 5000,  label: '5k',  major: false },
+    { hz: 10000, label: '10k', major: true },
+    { hz: 20000, label: '20k', major: true }
+  ];
+
+  gridFreqs.forEach(item => {
+    const x = hzToLogX(item.hz, plotW, pL);
+    fCtx.beginPath();
+    fCtx.strokeStyle = item.major ? '#2a3242' : '#171c26';
+    fCtx.moveTo(x, 0);
+    fCtx.lineTo(x, plotH);
+    fCtx.stroke();
+
+    if (item.label) {
+      fCtx.fillStyle = item.major ? '#94a3b8' : '#526074';
+      const offset = (item.hz === 20) ? 0 : (item.hz === 20000 ? 16 : 8);
+      fCtx.fillText(item.label, x - offset, H - 5);
+    }
   });
-  fCtx.fillText('0', pL + 1, H - 5);
 }
 
-// ─── Frequency spectrum render ────────────────────────────────────────────────
+// ─── Log Frequency Spectrum Render ───────────────────────────────────────────
 function renderFrequency(freqData) {
-  const pL = 40, pB = 22;
+  const pL = 40, pB = 20;
   drawFreqGrid(pL, pB);
 
   const { w: W, h: H } = canvasSize.freq;
   if (!W || !H) return;
 
-  const plotW  = W - pL - 6;
-  const plotH  = H - pB;
-  const dbMin  = -100, dbMax = 0;
+  const plotW = W - pL - 6;
+  const plotH = H - pB;
+  const dbMin = -100, dbMax = 0;
   const nyquist = actualSampleRate / 2;
-  const maxHz  = Math.min(8000, nyquist);
-  const maxBin = Math.floor(freqData.length * maxHz / nyquist);
+  const binCount = freqData.length;
 
   const grad = fCtx.createLinearGradient(0, 0, 0, plotH);
   grad.addColorStop(0,   '#00d2ff');
   grad.addColorStop(0.5, '#0088ff');
   grad.addColorStop(1,   '#0044aa');
 
+  // Fill Area
   fCtx.beginPath();
   fCtx.moveTo(pL, plotH);
 
   for (let px = 0; px < plotW; px++) {
-    const bin = Math.floor((px / plotW) * maxBin);
-    const db  = Math.max(dbMin, Math.min(dbMax, freqData[bin]));
-    const y   = ((dbMax - db) / (dbMax - dbMin)) * plotH;
+    const hz = logXToHz(px, plotW);
+    const binFloat = (hz / nyquist) * binCount;
+    const bin = Math.min(binCount - 1, Math.floor(binFloat));
+
+    // Linear interpolation between FFT bins
+    const nextBin = Math.min(binCount - 1, bin + 1);
+    const frac = binFloat - bin;
+    const dbVal = freqData[bin] * (1 - frac) + freqData[nextBin] * frac;
+
+    const clampedDb = Math.max(dbMin, Math.min(dbMax, dbVal));
+    const y = ((dbMax - clampedDb) / (dbMax - dbMin)) * plotH;
+
     if (px === 0) fCtx.lineTo(pL, y);
     else          fCtx.lineTo(pL + px, y);
   }
@@ -656,11 +731,19 @@ function renderFrequency(freqData) {
   fCtx.fillStyle = grad;
   fCtx.fill();
 
+  // Stroke Outline
   fCtx.beginPath();
   for (let px = 0; px < plotW; px++) {
-    const bin = Math.floor((px / plotW) * maxBin);
-    const db  = Math.max(dbMin, Math.min(dbMax, freqData[bin]));
-    const y   = ((dbMax - db) / (dbMax - dbMin)) * plotH;
+    const hz = logXToHz(px, plotW);
+    const binFloat = (hz / nyquist) * binCount;
+    const bin = Math.min(binCount - 1, Math.floor(binFloat));
+    const nextBin = Math.min(binCount - 1, bin + 1);
+    const frac = binFloat - bin;
+    const dbVal = freqData[bin] * (1 - frac) + freqData[nextBin] * frac;
+
+    const clampedDb = Math.max(dbMin, Math.min(dbMax, dbVal));
+    const y = ((dbMax - clampedDb) / (dbMax - dbMin)) * plotH;
+
     if (px === 0) fCtx.moveTo(pL, y);
     else          fCtx.lineTo(pL + px, y);
   }
