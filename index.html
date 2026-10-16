@@ -534,13 +534,15 @@ function drawTimeGrid(pL = 46, pB = 20, postDurationMs = 100, scale = 1.0) {
   if (!W || !H) return;
   tCtx.clearRect(0, 0, W, H);
 
+  const pT = 8; // 上端マージンを追加して文字見切れを解消
   const plotW = W - pL - 6;
-  const plotH = H - pB;
+  const plotH = H - pB - pT;
 
   tCtx.strokeStyle = '#1d222d';
   tCtx.lineWidth   = 1;
   tCtx.fillStyle   = '#64748b';
   tCtx.font        = '9px "SF Mono", monospace';
+  tCtx.textBaseline = 'middle'; // 文字の上下中央を目盛り線に揃える
 
   const vLimit = 1.0 / scale;
   const vSteps = [
@@ -551,20 +553,22 @@ function drawTimeGrid(pL = 46, pB = 20, postDurationMs = 100, scale = 1.0) {
     { ratio: 1.0,  label: `-${vLimit.toFixed(2)}` }
   ];
   vSteps.forEach(s => {
-    const y = s.ratio * plotH;
+    const y = pT + s.ratio * plotH;
     tCtx.beginPath(); tCtx.moveTo(pL, y); tCtx.lineTo(W, y); tCtx.stroke();
-    tCtx.fillText(s.label, 2, y + 3);
+    tCtx.fillText(s.label, 2, y);
   });
 
   const totalMs = PRE_TRIGGER_MS + postDurationMs;
   const triggerX = pL + (PRE_TRIGGER_MS / totalMs) * plotW;
 
+  // Red Trigger Line
   tCtx.strokeStyle = '#ff3366';
   tCtx.lineWidth   = 1;
   tCtx.setLineDash([3, 3]);
-  tCtx.beginPath(); tCtx.moveTo(triggerX, 0); tCtx.lineTo(triggerX, plotH); tCtx.stroke();
+  tCtx.beginPath(); tCtx.moveTo(triggerX, pT); tCtx.lineTo(triggerX, pT + plotH); tCtx.stroke();
   tCtx.setLineDash([]);
   tCtx.fillStyle = '#ff3366';
+  tCtx.textBaseline = 'alphabetic';
   tCtx.fillText('0ms', triggerX - 8, H - 5);
 
   tCtx.strokeStyle = '#1d222d';
@@ -578,7 +582,7 @@ function drawTimeGrid(pL = 46, pB = 20, postDurationMs = 100, scale = 1.0) {
 
   for (let ms = interval; ms <= postDurationMs; ms += interval) {
     const x = pL + ((PRE_TRIGGER_MS + ms) / totalMs) * plotW;
-    tCtx.beginPath(); tCtx.moveTo(x, 0); tCtx.lineTo(x, plotH); tCtx.stroke();
+    tCtx.beginPath(); tCtx.moveTo(x, pT); tCtx.lineTo(x, pT + plotH); tCtx.stroke();
     tCtx.fillText(`${ms}ms`, x - 10, H - 5);
   }
 }
@@ -587,7 +591,7 @@ function drawTimeGrid(pL = 46, pB = 20, postDurationMs = 100, scale = 1.0) {
 function renderTimeDomain(wave) {
   const postDurationMs = parseInt(timeSpanInput.value);
   const scale          = parseFloat(vScaleInput.value);
-  const pL = 46, pB = 20;
+  const pL = 46, pB = 20, pT = 8;
 
   drawTimeGrid(pL, pB, postDurationMs, scale);
 
@@ -595,8 +599,8 @@ function renderTimeDomain(wave) {
   if (!W || !H) return;
 
   const plotW   = W - pL - 6;
-  const plotH   = H - pB;
-  const centerY = plotH / 2;
+  const plotH   = H - pB - pT;
+  const centerY = pT + plotH / 2;
 
   const totalMs      = PRE_TRIGGER_MS + postDurationMs;
   const totalSamples = Math.floor(actualSampleRate * totalMs / 1000);
@@ -620,8 +624,8 @@ function renderTimeDomain(wave) {
 
     const clampedMax = Math.max(-1, Math.min(1, maxV * scale));
     const clampedMin = Math.max(-1, Math.min(1, minV * scale));
-    const yTop    = centerY - clampedMax * centerY;
-    const yBottom = centerY - clampedMin * centerY;
+    const yTop    = centerY - clampedMax * (plotH / 2);
+    const yBottom = centerY - clampedMin * (plotH / 2);
 
     const x = pL + px;
     if (!started) { tCtx.moveTo(x, yTop); started = true; }
@@ -659,19 +663,21 @@ function drawFreqGrid(pL = 40, pB = 18) {
   if (!W || !H) return;
   fCtx.clearRect(0, 0, W, H);
 
+  const pT = 8;
   const plotW = W - pL - 6;
-  const plotH = H - pB;
+  const plotH = H - pB - pT;
 
   fCtx.lineWidth = 1;
   fCtx.font      = '8.5px "SF Mono", monospace';
+  fCtx.textBaseline = 'middle';
 
   const dbSteps = [0, -20, -40, -60, -80, -100];
   dbSteps.forEach((db, i) => {
-    const y = (i / (dbSteps.length - 1)) * plotH;
+    const y = pT + (i / (dbSteps.length - 1)) * plotH;
     fCtx.strokeStyle = '#1d222d';
     fCtx.beginPath(); fCtx.moveTo(pL, y); fCtx.lineTo(W, y); fCtx.stroke();
     fCtx.fillStyle = '#64748b';
-    fCtx.fillText(`${db}`, 2, y + 3);
+    fCtx.fillText(`${db}`, 2, y);
   });
 
   const gridFreqs = [
@@ -691,12 +697,13 @@ function drawFreqGrid(pL = 40, pB = 18) {
     const x = hzToLogX(item.hz, plotW, pL);
     fCtx.beginPath();
     fCtx.strokeStyle = item.major ? '#2a3242' : '#171c26';
-    fCtx.moveTo(x, 0);
-    fCtx.lineTo(x, plotH);
+    fCtx.moveTo(x, pT);
+    fCtx.lineTo(x, pT + plotH);
     fCtx.stroke();
 
     if (item.label) {
       fCtx.fillStyle = item.major ? '#94a3b8' : '#526074';
+      fCtx.textBaseline = 'alphabetic';
       const offset = (item.hz === 20) ? 0 : (item.hz === 20000 ? 16 : 8);
       fCtx.fillText(item.label, x - offset, H - 4);
     }
@@ -705,46 +712,49 @@ function drawFreqGrid(pL = 40, pB = 18) {
 
 // ─── Log Frequency Spectrum Render ───────────────────────────────────────────
 function renderFrequency(freqData) {
-  const pL = 40, pB = 18;
+  const pL = 40, pB = 18, pT = 8;
   drawFreqGrid(pL, pB);
 
   const { w: W, h: H } = canvasSize.freq;
   if (!W || !H) return;
 
   const plotW = W - pL - 6;
-  const plotH = H - pB;
+  const plotH = H - pB - pT;
   const dbMin = -100, dbMax = 0;
   const nyquist = actualSampleRate / 2;
   const binCount = freqData.length;
 
-  const grad = fCtx.createLinearGradient(0, 0, 0, plotH);
+  const grad = fCtx.createLinearGradient(0, pT, 0, pT + plotH);
   grad.addColorStop(0,   '#00d2ff');
   grad.addColorStop(0.5, '#0088ff');
   grad.addColorStop(1,   '#0044aa');
 
+  // Fill Area
   fCtx.beginPath();
-  fCtx.moveTo(pL, plotH);
+  fCtx.moveTo(pL, pT + plotH);
 
   for (let px = 0; px < plotW; px++) {
     const hz = logXToHz(px, plotW);
     const binFloat = (hz / nyquist) * binCount;
     const bin = Math.min(binCount - 1, Math.floor(binFloat));
+
     const nextBin = Math.min(binCount - 1, bin + 1);
     const frac = binFloat - bin;
     const dbVal = freqData[bin] * (1 - frac) + freqData[nextBin] * frac;
 
     const clampedDb = Math.max(dbMin, Math.min(dbMax, dbVal));
-    const y = ((dbMax - clampedDb) / (dbMax - dbMin)) * plotH;
+    const y = pT + ((dbMax - clampedDb) / (dbMax - dbMin)) * plotH;
 
     if (px === 0) fCtx.lineTo(pL, y);
     else          fCtx.lineTo(pL + px, y);
   }
 
-  fCtx.lineTo(pL + plotW, plotH);
+  fCtx.lineTo(pL + plotW, pT + plotH);
   fCtx.closePath();
   fCtx.fillStyle = grad;
   fCtx.fill();
 
+  // Stroke Outline
   fCtx.beginPath();
   for (let px = 0; px < plotW; px++) {
     const hz = logXToHz(px, plotW);
@@ -755,7 +765,7 @@ function renderFrequency(freqData) {
     const dbVal = freqData[bin] * (1 - frac) + freqData[nextBin] * frac;
 
     const clampedDb = Math.max(dbMin, Math.min(dbMax, dbVal));
-    const y = ((dbMax - clampedDb) / (dbMax - dbMin)) * plotH;
+    const y = pT + ((dbMax - clampedDb) / (dbMax - dbMin)) * plotH;
 
     if (px === 0) fCtx.moveTo(pL, y);
     else          fCtx.lineTo(pL + px, y);
